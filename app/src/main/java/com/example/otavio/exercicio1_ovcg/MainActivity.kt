@@ -2,10 +2,14 @@ package com.example.otavio.exercicio1_ovcg
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.util.Log
+import android.widget.TextView
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,16 +35,50 @@ class MainActivity : AppCompatActivity() {
         btn_Subtract.setOnClickListener{ text_calc.text = text_calc.text.append("-") }
         btn_Power.setOnClickListener{ text_calc.text = text_calc.text.append("^") }
         btn_Clear.setOnClickListener{
+            if (text_calc.text.isNotEmpty()){
+                val text:String=text_calc.text.substring(0,text_calc.text.length-1)//apaga o ultimo caracter
+                text_calc.setText(text)
+            }
+            else{
                 text_calc.setText("")
+            }
 
         }
-
+        btn_Clear.setOnLongClickListener{//Limpa os campos quando tem um evento de click longo
+            text_calc.setText("")
+            text_info.text=""
+            return@setOnLongClickListener true}
         btn_Equal.setOnClickListener{
+            try {//
+                val tex:String=""+eval(text_calc.text.toString())//Pega o valor da função eval e seta nos widgets abaixo
+                text_info.text = tex
+                text_calc.setText(tex)
+            }catch (e:RuntimeException){
+                Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()//Pega a exceção e exibe num toast
+            }
+        }
 
-            val tex:String=""+eval(text_calc.text.toString())
-            text_info.text = tex
-            text_calc.setText("")}
 
+    }
+
+    //Nesta função o conteúdo de text_info e text_calc é salvo após alterações no lifecycle
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        if (outState != null) {
+            outState.putString("calc", text_calc.text.toString())
+            outState.putString("info", text_info.text as String?)
+        }
+    }
+
+    //Nesta função o conteúdo de text_info e text_calc é restaurado após alterações no lifecycle
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if(savedInstanceState!=null){
+            val tex_info:String=savedInstanceState.getString("info")
+            val tex_calc:String=savedInstanceState.getString("calc")
+            text_info.setText(tex_info)
+            text_calc.setText(tex_calc)
+        }
 
     }
 
